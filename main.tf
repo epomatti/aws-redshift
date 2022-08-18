@@ -35,13 +35,15 @@ resource "aws_iam_role_policy_attachment" "AmazonRedshiftAllCommandsFullAccess" 
 }
 
 resource "aws_redshift_cluster" "main" {
-  cluster_identifier   = "company-redshift-cluster"
-  database_name        = "companydb"
-  master_username      = "dwuser"
-  master_password      = "P4ssw0rd"
-  node_type            = "dc2.large"
-  cluster_type         = "single-node"
-  number_of_nodes      = 1
-  publicly_accessible  = true
+  cluster_identifier  = "company-redshift-cluster"
+  database_name       = "companydb"
+  master_username     = "dwuser"
+  master_password     = "P4ssw0rd"
+  node_type           = "dc2.large"
+  cluster_type        = "single-node"
+  number_of_nodes     = 1
+  publicly_accessible = true
+
   default_iam_role_arn = aws_iam_role.redshift.arn
+  iam_roles            = [aws_iam_role.redshift.arn]
 }
