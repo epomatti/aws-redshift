@@ -43,6 +43,7 @@ resource "aws_redshift_cluster" "main" {
   cluster_type        = "single-node"
   number_of_nodes     = 1
   publicly_accessible = true
+  skip_final_snapshot = true
 
   default_iam_role_arn = aws_iam_role.redshift.arn
   iam_roles            = [aws_iam_role.redshift.arn]
