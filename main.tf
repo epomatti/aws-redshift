@@ -26,7 +26,7 @@ resource "aws_iam_role" "redshift" {
         Effect = "Allow"
         Sid    = ""
         Principal = {
-          Service = "redshift.amazonaws.com"
+          Service = ["redshift.amazonaws.com"]
         }
       },
     ]
@@ -65,6 +65,13 @@ resource "aws_redshiftdata_statement" "create_product_table" {
   sql                = file("${path.module}/create-tables.sql")
 }
 
+resource "aws_redshiftdata_statement" "create_employees_table" {
+  cluster_identifier = aws_redshift_cluster.main.cluster_identifier
+  database           = aws_redshift_cluster.main.database_name
+  db_user            = aws_redshift_cluster.main.master_username
+  sql                = file("${path.module}/create-employees-table.sql")
+}
+
 ### S3 ###
 
 resource "aws_s3_bucket" "main" {
@@ -97,6 +104,65 @@ resource "aws_s3_object" "products" {
   source = "products.csv"
   etag   = filemd5("products.csv")
 }
+
+resource "aws_s3_object" "employees" {
+  bucket = aws_s3_bucket.main.bucket
+  key    = "data/employees.csv"
+  source = "employees.csv"
+  etag   = filemd5("employees.csv")
+}
+
+### Data Pipelines ###
+
+data "aws_iam_policy" "AmazonEC2ReadOnlyAccess" {
+  arn = "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess"
+}
+
+data "aws_iam_policy" "AWSCodePipelineFullAccess" {
+  arn = "arn:aws:iam::aws:policy/AWSCodePipelineFullAccess"
+}
+
+resource "aws_iam_role" "datapipelines" {
+  name = "DataPipelinesRole"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Sid    = ""
+        Principal = {
+          Service = [
+            "ec2.amazonaws.com",
+            "datapipeline.amazonaws.com",
+            "elasticmapreduce.amazonaws.com"
+          ]
+        }
+      },
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "AmazonS3FullAccess_pipelines" {
+  role       = aws_iam_role.datapipelines.name
+  policy_arn = data.aws_iam_policy.AmazonS3FullAccess.arn
+}
+
+resource "aws_iam_role_policy_attachment" "AmazonEC2ReadOnlyAccess" {
+  role       = aws_iam_role.datapipelines.name
+  policy_arn = data.aws_iam_policy.AmazonEC2ReadOnlyAccess.arn
+}
+
+resource "aws_iam_role_policy_attachment" "AWSCodePipelineFullAccess" {
+  role       = aws_iam_role.datapipelines.name
+  policy_arn = data.aws_iam_policy.AWSCodePipelineFullAccess.arn
+}
+
+resource "aws_iam_instance_profile" "guacamole" {
+  name = "DataPipelinesEC2InstanceRole"
+  role = aws_iam_role.datapipelines.id
+}
+
 
 ### Outputs ###
 
