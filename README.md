@@ -40,7 +40,7 @@ select * from public.products;
 
 You may also use Spectrum to read files directly from S3 on Redshift.
 
-### Glue
+## Glue
 
 For an example of using Glue, check my other repository [aws-glue-athena](https://github.com/epomatti/aws-glue-athena).
 
