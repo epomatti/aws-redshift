@@ -36,6 +36,10 @@ You should now be able to select data with high performance:
 select * from public.products;
 ```
 
+### Spectrum
+
+You may also use Spectrum to read files directly from S3 on Redshift.
+
 ### Glue
 
 For an example of using Glue, check my other repository [aws-glue-athena](https://github.com/epomatti/aws-glue-athena).
